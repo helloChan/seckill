@@ -58,7 +58,7 @@ public class ConsoleMode {
         String startTime = vaccine.get(no).getStartTime();
         log.info("按回车键开始秒杀：");
         sc.nextLine();
-        secKillService.startSecKill(code, startTime, null);
+        secKillService.startSeckill(code, startTime, null);
     }
 
 }

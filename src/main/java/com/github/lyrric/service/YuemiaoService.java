@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.github.lyrric.conf.Config;
 import com.github.lyrric.model.*;
 import com.github.lyrric.properties.YuemaioUrlProperties;
+import com.github.lyrric.ui.MainFrame;
 import com.github.lyrric.util.AreaUtil;
 import com.github.lyrric.util.DateUtil;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -24,6 +25,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 /**
@@ -32,18 +37,62 @@ import java.util.stream.Collectors;
  * @author wangxiaodong
  */
 public class YuemiaoService {
-    private String baseUrl = "https://miaomiao.scmttec.com";
-    private final Logger log = LoggerFactory.getLogger(YuemiaoService.class);
-
     private static YuemiaoService yuemiaoService = new YuemiaoService();
 
     private YuemiaoService() {
     }
 
+    private final Logger log = LoggerFactory.getLogger(YuemiaoService.class);
+    private ExecutorService executorService = Executors.newFixedThreadPool(200);
+
     public static YuemiaoService getInstance() {
         return yuemiaoService;
     }
 
+    public static void main(String[] args) {
+        YuemiaoService instance = YuemiaoService.getInstance();
+        instance.startSeckill(1, "2021-03-06 14:00:00", null);
+    }
+
+    public void startSeckill(Integer vaccineId, String startDateStr, MainFrame mainFrame) {
+        Runnable task = this.seckillStrategy(vaccineId, startDateStr, mainFrame);
+        for (int i = 0; i < 200; i++) {
+            executorService.submit(task);
+        }
+    }
+
+    public Runnable seckillStrategy(Integer vaccineId, String startDateStr, MainFrame mainFrame) {
+        long startDate = DateUtil.parseDate(startDateStr, DateUtil.yyyy_MM_dd_HH_mm_ss).getTime();
+        AtomicBoolean success = new AtomicBoolean(false);
+        AtomicReference<String> orderId = new AtomicReference<>(null);
+        Runnable task = () -> {
+            log.info("线程名称 - {}", Thread.currentThread().getName());
+            do {
+                try {
+                    //1.直接秒杀、获取秒杀资格
+                    orderId.set(yuemiaoService.seckill(vaccineId.toString(), "1", Config.memberId.toString(), Config.idCard));
+                    success.set(true);
+                    log.info("{} -----------------------> 抢购成功", Thread.currentThread().getName());
+                } catch (BusinessException e) {
+                    log.info("{} 抢购失败: {}", Thread.currentThread().getId(), e.getErrMsg());
+                    //如果离开始时间120秒后，或者已经成功抢到则不再继续
+                    if (System.currentTimeMillis() > startDate + 1000 * 60 * 2 || success.get()) {
+                        return;
+                    }
+//                    if("操作过于频繁,请稍后再试!".equals(e.getErrMsg()) && new Random().nextBoolean()){
+//                        try {
+//                            Thread.sleep(500);
+//                        } catch (InterruptedException ex) {
+//                            ex.printStackTrace();
+//                        }
+//                    }
+                } catch (Exception e) {
+                    log.info("{}异常，{}", Thread.currentThread().getName(), e.getMessage(), e);
+                }
+            } while (orderId.get() == null);
+        };
+        return task;
+    }
     /**
      * 检测有疫苗的医院
      *
@@ -54,7 +103,7 @@ public class YuemiaoService {
         List<Area> areas = AreaUtil.getAreas();
         for (Area province : areas) {
             for (Area city : province.getChildren()) {
-                List<Vaccine> vaccineList ;
+                List<Vaccine> vaccineList;
                 try {
                     vaccineList = this.getVaccineList(city.getValue());
                     this.addAddressInfo(vaccineList, province.getName(), city.getName());
@@ -82,7 +131,7 @@ public class YuemiaoService {
      * @throws IOException
      * @throws BusinessException
      */
-    public String secKill(String seckillId, String vaccineIndex, String linkmanId, String idCard) throws IOException, BusinessException {
+    public String seckill(String seckillId, String vaccineIndex, String linkmanId, String idCard) throws IOException, BusinessException {
         Map<String, String> params = new HashMap<>();
         params.put("seckillId", seckillId);
         params.put("vaccineIndex", vaccineIndex);
@@ -159,7 +208,7 @@ public class YuemiaoService {
      * @param orderId 订单ID
      */
     public List<SubDate> getSkSubDays(String vaccineId, String orderId) throws IOException, BusinessException {
-        String path = baseUrl + "/seckill/seckill/subscribeDays.do";
+        String path = YuemaioUrlProperties.getInstance().getHost() + "/seckill/seckill/subscribeDays.do";
         Map<String, String> params = new HashMap<>();
         params.put("id", vaccineId);
         params.put("sid", orderId);
@@ -179,7 +228,7 @@ public class YuemiaoService {
      * @throws BusinessException
      */
     public List<SubDateTime> getSkSubDayTime(String vaccineId, String orderId, String day) throws IOException, BusinessException {
-        String path = baseUrl + "/seckill/seckill/dayTimes.do";
+        String path = YuemaioUrlProperties.getInstance().getHost() + "/seckill/seckill/dayTimes.do";
         Map<String, String> params = new HashMap<>();
         params.put("id", vaccineId);
         params.put("sid", orderId);
@@ -200,7 +249,7 @@ public class YuemiaoService {
      * @throws BusinessException
      */
     public void subDayTime(String vaccineId, String orderId, String day, String wid) throws IOException, BusinessException {
-        String path = baseUrl + "/seckill/seckill/submitDateTime.do";
+        String path = YuemaioUrlProperties.getInstance().getHost() + "/seckill/seckill/submitDateTime.do";
         Map<String, String> params = new HashMap<>();
         params.put("id", vaccineId);
         params.put("sid", orderId);

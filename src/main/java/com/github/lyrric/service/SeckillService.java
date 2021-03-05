@@ -3,13 +3,11 @@ package com.github.lyrric.service;
 import com.github.lyrric.conf.Config;
 import com.github.lyrric.model.BusinessException;
 import com.github.lyrric.ui.MainFrame;
+import com.github.lyrric.util.DateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.text.DateFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -32,9 +30,8 @@ public class SeckillService {
      * 多线程秒杀开启
      */
     @SuppressWarnings("AlibabaAvoidManuallyCreateThread")
-    public void startSecKill(Integer vaccineId, String startDateStr, MainFrame mainFrame) throws ParseException, InterruptedException {
-        long startDate = convertDateToInt(startDateStr);
-
+    public void startSeckill(Integer vaccineId, String startDateStr, MainFrame mainFrame) throws ParseException, InterruptedException {
+        long startDate = DateUtil.parseDate(startDateStr, DateUtil.yyyy_MM_dd_HH_mm_ss).getTime();
         AtomicBoolean success = new AtomicBoolean(false);
         AtomicReference<String> orderId = new AtomicReference<>(null);
         Runnable task = ()-> {
@@ -43,7 +40,7 @@ public class SeckillService {
                     //1.直接秒杀、获取秒杀资格
                     long id = Thread.currentThread().getId();
                     logger.info("Thread ID：{}，发送请求", id);
-                    orderId.set(yuemiaoService.secKill(vaccineId.toString(), "1", Config.memberId.toString(), Config.idCard));
+                    orderId.set(yuemiaoService.seckill(vaccineId.toString(), "1", Config.memberId.toString(), Config.idCard));
                     success.set(true);
                     logger.info("Thread ID：{}，抢购成功", id);
                 } catch (BusinessException e) {
@@ -68,7 +65,7 @@ public class SeckillService {
         long now = System.currentTimeMillis();
         if(now + 2000 < startDate){
             logger.info("还未到开始时间，等待中......");
-            Thread.sleep(startDate-now-2000);
+            Thread.sleep(startDate - now - 2000);
         }
         //如何保证能在秒杀时间点瞬间并发？
         //提前2000毫秒开始秒杀
@@ -134,17 +131,4 @@ public class SeckillService {
         }
 
     }
-
-    /**
-     *  将时间字符串转换为时间戳
-     * @param dateStr yyyy-mm-dd格式
-     * @return
-     */
-    public long convertDateToInt(String dateStr) throws ParseException {
-        DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        Date date = format.parse(dateStr);
-        return date.getTime();
-    }
-
-
 }

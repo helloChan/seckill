@@ -23,8 +23,7 @@ public class Config {
             "content-type: application/json\n" +
             "tk: wxapptoken:10:e0963da6b3e544f48fef5f6f27c32b5f\n" +
             "Referer: https://servicewechat.com/wxff8cad2e9bf18719/7/page-frame.html\n" +
-            "Accept-Encoding: gzip, deflate, br\n" +
-            "\n";
+            "Accept-Encoding: gzip, deflate, br";
 
     /**
      * 接种成员ID

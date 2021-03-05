@@ -235,7 +235,7 @@ public class MainFrame extends JFrame {
                 setCookieButton.setEnabled(false);
                 startButton.setEnabled(false);
                 setMemberButton.setEnabled(false);
-                service.startSecKill(id, startTime, this);
+                service.startSeckill(id, startTime, this);
             } catch (ParseException | InterruptedException e) {
                 appendMsg("解析开始时间失败");
                 e.printStackTrace();
