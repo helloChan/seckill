@@ -94,7 +94,6 @@ public class YuemiaoService {
      * @throws BusinessException
      */
     public String secKill(String seckillId, String vaccineIndex, String linkmanId, String idCard) throws IOException, BusinessException {
-        String path = baseUrl + "/seckill/seckill/subscribe.do";
         Map<String, String> params = new HashMap<>();
         params.put("seckillId", seckillId);
         params.put("vaccineIndex", vaccineIndex);
@@ -125,7 +124,6 @@ public class YuemiaoService {
      */
     public List<Vaccine> getVaccineList(String regionCode) throws BusinessException, IOException {
         hasAvailableConfig();
-        String path = baseUrl + "/seckill/seckill/list.do";
         Map<String, String> param = new HashMap<>();
         //九价疫苗的code
         param.put("offset", "0");
@@ -142,7 +140,6 @@ public class YuemiaoService {
      * @return
      */
     public List<Member> getMembers() throws IOException, BusinessException {
-        String path = baseUrl + "/seckill/linkman/findByUserId.do";
         String json = get(YuemaioUrlProperties.getInstance().getMemberList(), null, null);
         return JSONObject.parseArray(json, Member.class);
     }
@@ -152,7 +149,6 @@ public class YuemiaoService {
      * @param vaccineId 疫苗ID
      */
     public String getSt(String vaccineId) throws IOException {
-        String path = baseUrl + "/seckill/seckill/checkstock2.do";
         Map<String, String> params = new HashMap<>();
         params.put("id", vaccineId);
         String json = get(YuemaioUrlProperties.getInstance().getCheckstock2(), params, null);

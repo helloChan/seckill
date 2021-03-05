@@ -26,7 +26,7 @@ public class ConsoleMode {
 
     private ExecutorService service = Executors.newFixedThreadPool(100);
 
-    private YuemiaoService yuemiaoService = new YuemiaoService();
+    private YuemiaoService yuemiaoService = YuemiaoService.getInstance();
 
     private SecKillService secKillService = new SecKillService();
 

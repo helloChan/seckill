@@ -60,7 +60,7 @@ public class MemberDialog extends JDialog {
     private void initData(){
         new Thread(()->{
             try {
-                List<Member> members = new YuemiaoService().getMembers();
+                List<Member> members = YuemiaoService.getInstance().getMembers();
                 setTitle("请选择成员");
                 table.removeAll();
                 if(members.isEmpty()){
