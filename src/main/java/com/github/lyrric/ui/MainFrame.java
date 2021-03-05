@@ -101,10 +101,7 @@ public class MainFrame extends JFrame {
         refreshBtn.addActionListener((e)->{
             try {
                 vaccines = yuemiaoService.getVaccineList();
-                vaccineRender(vaccines);
-            } catch (IOException ex) {
-                ex.printStackTrace();
-                appendMsg("未知错误");
+                this.vaccineRender(vaccines);
             } catch (BusinessException e1) {
                 appendMsg("错误："+e1.getErrMsg()+"，errCode"+e1.getCode());
             }
@@ -200,7 +197,6 @@ public class MainFrame extends JFrame {
             for (Vaccine t : vaccines) {
                 String[] item = { t.getId().toString(), t.getVaccineName(),t.getName() ,t.getStartTime()};
                 tableModel.addRow(item);
-
             }
         }
     }

@@ -36,10 +36,14 @@ public class YuemiaoService {
     private final Logger log = LoggerFactory.getLogger(YuemiaoService.class);
 
     private static YuemiaoService yuemiaoService = new YuemiaoService();
-    private YuemiaoService() {}
+
+    private YuemiaoService() {
+    }
+
     public static YuemiaoService getInstance() {
         return yuemiaoService;
     }
+
     /**
      * 检测有疫苗的医院
      *
@@ -61,10 +65,7 @@ public class YuemiaoService {
                         });
                     }
                     Thread.sleep(200);
-                } catch (IOException e) {
-                    log.error("{}", e.getMessage(), e);
-                    log.info("{}-{} 获取疫苗列表失败，regionCode: {}", province.getName(), city.getName(), city.getValue());
-                } catch (InterruptedException e) {
+                } catch (Exception e) {
                     log.error("{}", e.getMessage(), e);
                     log.info("{}-{} 获取疫苗列表失败，regionCode: {}", province.getName(), city.getName(), city.getValue());
                 }
@@ -74,13 +75,12 @@ public class YuemiaoService {
         // 过滤九价疫苗
         list = list.stream().filter(vaccine -> "8803".equals(vaccine.getVaccineCode())).collect(Collectors.toList());
         // 过滤已过期的
-        list = list.stream().filter(vaccine ->  DateUtil.parseDate(vaccine.getStartTime(),DateUtil.yyyy_MM_dd_HH_mm_ss).getTime() > System.currentTimeMillis()).collect(Collectors.toList());
+        list = list.stream().filter(vaccine -> DateUtil.parseDate(vaccine.getStartTime(), DateUtil.yyyy_MM_dd_HH_mm_ss).getTime() > System.currentTimeMillis()).collect(Collectors.toList());
         // 时间升序
-        list.sort((Vaccine v1, Vaccine v2) -> DateUtil.parseDate(v1.getStartTime(),DateUtil.yyyy_MM_dd_HH_mm_ss).compareTo(DateUtil.parseDate(v2.getStartTime(),DateUtil.yyyy_MM_dd_HH_mm_ss)));
+        list.sort((Vaccine v1, Vaccine v2) -> DateUtil.parseDate(v1.getStartTime(), DateUtil.yyyy_MM_dd_HH_mm_ss).compareTo(DateUtil.parseDate(v2.getStartTime(), DateUtil.yyyy_MM_dd_HH_mm_ss)));
         list.forEach(vaccine -> log.info("{}-{} {} {} {} {}", vaccine.getProvince(), vaccine.getCity(), vaccine.getName(), vaccine.getAddress(), vaccine.getVaccineName(), vaccine.getStartTime()));
         return list;
     }
-
 
 
     /***
@@ -112,14 +112,20 @@ public class YuemiaoService {
      * @return
      * @throws BusinessException
      */
-    public List<Vaccine> getVaccineList() throws BusinessException, IOException {
-        List<Vaccine> vaccineList = this.getVaccineList(Config.regionCode);
-        // 过滤九价疫苗
-        vaccineList = vaccineList.stream().filter(vaccine -> "8803".equals(vaccine.getVaccineCode())).collect(Collectors.toList());
-        // 过滤已过期的
-        vaccineList = vaccineList.stream().filter(vaccine ->  DateUtil.parseDate(vaccine.getStartTime(),DateUtil.yyyy_MM_dd_HH_mm_ss).getTime() > System.currentTimeMillis()).collect(Collectors.toList());
-        // 时间升序
-        vaccineList.sort((Vaccine v1, Vaccine v2) -> DateUtil.parseDate(v1.getStartTime(),DateUtil.yyyy_MM_dd_HH_mm_ss).compareTo(DateUtil.parseDate(v2.getStartTime(),DateUtil.yyyy_MM_dd_HH_mm_ss)));
+    public List<Vaccine> getVaccineList() {
+        List<Vaccine> vaccineList = new ArrayList<>();
+        try {
+            vaccineList = this.getVaccineList(Config.regionCode);
+            // 过滤九价疫苗
+            vaccineList = vaccineList.stream().filter(vaccine -> "8803".equals(vaccine.getVaccineCode())).collect(Collectors.toList());
+            // 过滤已过期的
+            vaccineList = vaccineList.stream().filter(vaccine -> DateUtil.parseDate(vaccine.getStartTime(), DateUtil.yyyy_MM_dd_HH_mm_ss).getTime() > System.currentTimeMillis()).collect(Collectors.toList());
+            // 时间升序
+            vaccineList.sort((Vaccine v1, Vaccine v2) -> DateUtil.parseDate(v1.getStartTime(), DateUtil.yyyy_MM_dd_HH_mm_ss).compareTo(DateUtil.parseDate(v2.getStartTime(), DateUtil.yyyy_MM_dd_HH_mm_ss)));
+            return vaccineList;
+        } catch (Exception e) {
+            log.error("获取默认城市疫苗数据失败，{}", e.getMessage(), e);
+        }
         return vaccineList;
     }
 
