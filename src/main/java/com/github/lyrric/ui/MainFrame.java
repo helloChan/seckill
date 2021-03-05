@@ -5,8 +5,8 @@ import com.github.lyrric.model.Area;
 import com.github.lyrric.model.BusinessException;
 import com.github.lyrric.model.TableModel;
 import com.github.lyrric.model.Vaccine;
-import com.github.lyrric.service.BusinessService;
 import com.github.lyrric.service.SecKillService;
+import com.github.lyrric.service.YuemiaoService;
 import com.github.lyrric.util.AreaUtil;
 import org.apache.commons.lang3.StringUtils;
 
@@ -27,7 +27,7 @@ import java.util.List;
 public class MainFrame extends JFrame {
 
     SecKillService service = new SecKillService();
-    BusinessService businessService = BusinessService.getInstance();
+    YuemiaoService yuemiaoService = YuemiaoService.getInstance();
     /**
      * 疫苗列表
      */
@@ -159,7 +159,7 @@ public class MainFrame extends JFrame {
         vaccineListBtn = new JButton("可抢列表");
         vaccineListBtn.setEnabled(true);
         vaccineListBtn.addActionListener((e)->{
-            businessService.checkVaccine();
+            yuemiaoService.checkVaccine();
         });
         vaccineListBtn.setBounds(320, 270, 80, 30);
 

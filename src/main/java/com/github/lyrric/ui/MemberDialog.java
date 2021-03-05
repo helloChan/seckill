@@ -5,7 +5,7 @@ import com.github.lyrric.conf.Config;
 import com.github.lyrric.model.BusinessException;
 import com.github.lyrric.model.Member;
 import com.github.lyrric.model.TableModel;
-import com.github.lyrric.service.HttpService;
+import com.github.lyrric.service.YuemiaoService;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -60,7 +60,7 @@ public class MemberDialog extends JDialog {
     private void initData(){
         new Thread(()->{
             try {
-                List<Member> members = new HttpService().getMembers();
+                List<Member> members = new YuemiaoService().getMembers();
                 setTitle("请选择成员");
                 table.removeAll();
                 if(members.isEmpty()){

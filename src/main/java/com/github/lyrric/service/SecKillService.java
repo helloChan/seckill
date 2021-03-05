@@ -27,10 +27,8 @@ import java.util.concurrent.atomic.AtomicReference;
 public class SecKillService {
     private final Logger logger = LoggerFactory.getLogger(SecKillService.class);
 
-    private HttpService httpService;
-    public SecKillService() {
-        httpService = new HttpService();
-    }
+    private YuemiaoService yuemiaoService = YuemiaoService.getInstance();
+    public SecKillService() {}
 
     private ExecutorService service = Executors.newFixedThreadPool(200);
     /**
@@ -48,7 +46,7 @@ public class SecKillService {
                     //1.直接秒杀、获取秒杀资格
                     long id = Thread.currentThread().getId();
                     logger.info("Thread ID：{}，发送请求", id);
-                    orderId.set(httpService.secKill(vaccineId.toString(), "1", Config.memberId.toString(), Config.idCard));
+                    orderId.set(yuemiaoService.secKill(vaccineId.toString(), "1", Config.memberId.toString(), Config.idCard));
                     success.set(true);
                     logger.info("Thread ID：{}，抢购成功", id);
                 } catch (BusinessException e) {
@@ -140,7 +138,7 @@ public class SecKillService {
 
     }
     public List<Vaccine> getVaccines() throws IOException, BusinessException {
-        return httpService.getVaccineList();
+        return yuemiaoService.getVaccineList();
     }
     /**
      *  将时间字符串转换为时间戳

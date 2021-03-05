@@ -3,7 +3,7 @@ package com.github.lyrric.ui;
 import com.github.lyrric.conf.Config;
 import com.github.lyrric.model.Member;
 import com.github.lyrric.model.Vaccine;
-import com.github.lyrric.service.HttpService;
+import com.github.lyrric.service.YuemiaoService;
 import com.github.lyrric.service.SecKillService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +26,7 @@ public class ConsoleMode {
 
     private ExecutorService service = Executors.newFixedThreadPool(100);
 
-    private HttpService httpService = new HttpService();
+    private YuemiaoService yuemiaoService = new YuemiaoService();
 
     private SecKillService secKillService = new SecKillService();
 
@@ -37,7 +37,7 @@ public class ConsoleMode {
         log.info("请输入Cookie：");
         Config.cookies = sc.nextLine().trim();
         log.info("获取接种人员......");
-        List<Member> members = httpService.getMembers();
+        List<Member> members = yuemiaoService.getMembers();
         for (int i = 0; i < members.size(); i++) {
             log.info("{}-{}-{}", i, members.get(i).getName(), members.get(i).getIdCardNo());
         }
@@ -47,7 +47,7 @@ public class ConsoleMode {
         Config.idCard = members.get(no).getIdCardNo();
 
         log.info("获取疫苗列表......");
-        List<Vaccine> vaccine = httpService.getVaccineList();
+        List<Vaccine> vaccine = yuemiaoService.getVaccineList();
         for (int i = 0; i < vaccine.size(); i++) {
             Vaccine item = vaccine.get(i);
             log.info("{}-{}-{}-{}-{}", i, item.getName(), item.getVaccineName(), item.getAddress(), item.getStartTime());

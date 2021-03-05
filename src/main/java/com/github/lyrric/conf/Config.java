@@ -1,9 +1,5 @@
 package com.github.lyrric.conf;
 
-import com.github.lyrric.model.Member;
-
-import java.util.List;
-
 /**
  * Created on 2020-07-23.
  *
