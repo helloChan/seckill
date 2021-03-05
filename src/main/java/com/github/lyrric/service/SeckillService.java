@@ -2,17 +2,14 @@ package com.github.lyrric.service;
 
 import com.github.lyrric.conf.Config;
 import com.github.lyrric.model.BusinessException;
-import com.github.lyrric.model.Vaccine;
 import com.github.lyrric.ui.MainFrame;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -24,11 +21,11 @@ import java.util.concurrent.atomic.AtomicReference;
  *
  * @author wangxiaodong
  */
-public class SecKillService {
-    private final Logger logger = LoggerFactory.getLogger(SecKillService.class);
+public class SeckillService {
+    private final Logger logger = LoggerFactory.getLogger(SeckillService.class);
 
     private YuemiaoService yuemiaoService = YuemiaoService.getInstance();
-    public SecKillService() {}
+    public SeckillService() {}
 
     private ExecutorService service = Executors.newFixedThreadPool(200);
     /**

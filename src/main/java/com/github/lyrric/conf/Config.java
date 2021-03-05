@@ -42,5 +42,7 @@ public class Config {
      * 选择的地区代码
      */
     public static String regionCode = "4401";
+    public static String province = "广东";
+    public static String city = "广州";
 
 }

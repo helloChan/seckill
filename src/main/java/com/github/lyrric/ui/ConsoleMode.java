@@ -4,7 +4,7 @@ import com.github.lyrric.conf.Config;
 import com.github.lyrric.model.Member;
 import com.github.lyrric.model.Vaccine;
 import com.github.lyrric.service.YuemiaoService;
-import com.github.lyrric.service.SecKillService;
+import com.github.lyrric.service.SeckillService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +28,7 @@ public class ConsoleMode {
 
     private YuemiaoService yuemiaoService = YuemiaoService.getInstance();
 
-    private SecKillService secKillService = new SecKillService();
+    private SeckillService secKillService = new SeckillService();
 
     public void start() throws IOException, ParseException, InterruptedException {
         Scanner sc = new Scanner(System.in);

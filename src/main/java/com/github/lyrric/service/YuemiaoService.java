@@ -54,30 +54,19 @@ public class YuemiaoService {
         List<Area> areas = AreaUtil.getAreas();
         for (Area province : areas) {
             for (Area city : province.getChildren()) {
-                List<Vaccine> vaccineList = null;
+                List<Vaccine> vaccineList ;
                 try {
                     vaccineList = this.getVaccineList(city.getValue());
-                    // 添加地址信息
-                    if (vaccineList != null && vaccineList.size() > 0) {
-                        vaccineList.forEach(vaccine -> {
-                            vaccine.setProvince(province.getName());
-                            vaccine.setCity(city.getName());
-                        });
-                    }
+                    this.addAddressInfo(vaccineList, province.getName(), city.getName());
+                    list.addAll(vaccineList);
                     Thread.sleep(200);
                 } catch (Exception e) {
                     log.error("{}", e.getMessage(), e);
                     log.info("{}-{} 获取疫苗列表失败，regionCode: {}", province.getName(), city.getName(), city.getValue());
                 }
-                list.addAll(vaccineList);
             }
         }
-        // 过滤九价疫苗
-        list = list.stream().filter(vaccine -> "8803".equals(vaccine.getVaccineCode())).collect(Collectors.toList());
-        // 过滤已过期的
-        list = list.stream().filter(vaccine -> DateUtil.parseDate(vaccine.getStartTime(), DateUtil.yyyy_MM_dd_HH_mm_ss).getTime() > System.currentTimeMillis()).collect(Collectors.toList());
-        // 时间升序
-        list.sort((Vaccine v1, Vaccine v2) -> DateUtil.parseDate(v1.getStartTime(), DateUtil.yyyy_MM_dd_HH_mm_ss).compareTo(DateUtil.parseDate(v2.getStartTime(), DateUtil.yyyy_MM_dd_HH_mm_ss)));
+        list = this.vaccineListFormat(list);
         list.forEach(vaccine -> log.info("{}-{} {} {} {} {}", vaccine.getProvince(), vaccine.getCity(), vaccine.getName(), vaccine.getAddress(), vaccine.getVaccineName(), vaccine.getStartTime()));
         return list;
     }
@@ -116,13 +105,8 @@ public class YuemiaoService {
         List<Vaccine> vaccineList = new ArrayList<>();
         try {
             vaccineList = this.getVaccineList(Config.regionCode);
-            // 过滤九价疫苗
-            vaccineList = vaccineList.stream().filter(vaccine -> "8803".equals(vaccine.getVaccineCode())).collect(Collectors.toList());
-            // 过滤已过期的
-            vaccineList = vaccineList.stream().filter(vaccine -> DateUtil.parseDate(vaccine.getStartTime(), DateUtil.yyyy_MM_dd_HH_mm_ss).getTime() > System.currentTimeMillis()).collect(Collectors.toList());
-            // 时间升序
-            vaccineList.sort((Vaccine v1, Vaccine v2) -> DateUtil.parseDate(v1.getStartTime(), DateUtil.yyyy_MM_dd_HH_mm_ss).compareTo(DateUtil.parseDate(v2.getStartTime(), DateUtil.yyyy_MM_dd_HH_mm_ss)));
-            return vaccineList;
+            this.addAddressInfo(vaccineList, Config.province, Config.city);
+            vaccineList = this.vaccineListFormat(vaccineList);
         } catch (Exception e) {
             log.error("获取默认城市疫苗数据失败，{}", e.getMessage(), e);
         }
@@ -277,5 +261,25 @@ public class YuemiaoService {
         final Integer memberId = Config.memberId;
         String md5 = DigestUtils.md5Hex(seckillId + st + memberId);
         return DigestUtils.md5Hex(md5 + salt);
+    }
+
+    private void addAddressInfo(List<Vaccine> vaccines, String province, String city) {
+        // 添加地址信息
+        if (vaccines != null && vaccines.size() > 0) {
+            vaccines.forEach(vaccine -> {
+                vaccine.setProvince(province);
+                vaccine.setCity(city);
+            });
+        }
+    }
+
+    private List<Vaccine> vaccineListFormat(List<Vaccine> vaccines) {
+        // 过滤九价疫苗
+        vaccines = vaccines.stream().filter(vaccine -> "8803".equals(vaccine.getVaccineCode())).collect(Collectors.toList());
+        // 过滤已过期的
+        vaccines = vaccines.stream().filter(vaccine -> DateUtil.parseDate(vaccine.getStartTime(), DateUtil.yyyy_MM_dd_HH_mm_ss).getTime() > System.currentTimeMillis()).collect(Collectors.toList());
+        // 时间升序
+        vaccines.sort((Vaccine v1, Vaccine v2) -> DateUtil.parseDate(v1.getStartTime(), DateUtil.yyyy_MM_dd_HH_mm_ss).compareTo(DateUtil.parseDate(v2.getStartTime(), DateUtil.yyyy_MM_dd_HH_mm_ss)));
+        return vaccines;
     }
 }
