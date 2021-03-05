@@ -1,26 +1,19 @@
 package com.github.lyrric.ui;
 
 import com.github.lyrric.conf.Config;
-import com.github.lyrric.model.BusinessException;
 import com.github.lyrric.model.Member;
-import com.github.lyrric.model.VaccineList;
+import com.github.lyrric.model.Vaccine;
 import com.github.lyrric.service.HttpService;
 import com.github.lyrric.service.SecKillService;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.text.DateFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Created on 2020-08-14.
@@ -29,7 +22,7 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class ConsoleMode {
 
-    private final Logger log = LogManager.getLogger(ConsoleMode.class);
+    private final Logger log = LoggerFactory.getLogger(ConsoleMode.class);
 
     private ExecutorService service = Executors.newFixedThreadPool(100);
 
@@ -54,15 +47,15 @@ public class ConsoleMode {
         Config.idCard = members.get(no).getIdCardNo();
 
         log.info("获取疫苗列表......");
-        List<VaccineList> vaccineList = httpService.getVaccineList();
-        for (int i = 0; i < vaccineList.size(); i++) {
-            VaccineList item = vaccineList.get(i);
+        List<Vaccine> vaccine = httpService.getVaccineList();
+        for (int i = 0; i < vaccine.size(); i++) {
+            Vaccine item = vaccine.get(i);
             log.info("{}-{}-{}-{}-{}", i, item.getName(), item.getVaccineName(), item.getAddress(), item.getStartTime());
         }
         log.info("请输入疫苗序号：");
         no = Integer.parseInt(sc.nextLine());
-        int code = vaccineList.get(no).getId();
-        String startTime = vaccineList.get(no).getStartTime();
+        int code = vaccine.get(no).getId();
+        String startTime = vaccine.get(no).getStartTime();
         log.info("按回车键开始秒杀：");
         sc.nextLine();
         secKillService.startSecKill(code, startTime, null);

@@ -5,7 +5,7 @@ package com.github.lyrric.model;
  * 疫苗列表
  * @author wangxiaodong
  */
-public class VaccineList {
+public class Vaccine {
 
     private Integer id;
     /**
@@ -18,6 +18,8 @@ public class VaccineList {
     private String address;
     /**
      * 疫苗代码
+     * 九价-8803
+     * 四价-8802
      */
     private String vaccineCode;
     /**
@@ -28,6 +30,10 @@ public class VaccineList {
      * 秒杀时间
      */
     private String startTime;
+
+    private String province;
+
+    private String city;
 
     public Integer getId() {
         return id;
@@ -75,5 +81,21 @@ public class VaccineList {
 
     public void setVaccineName(String vaccineName) {
         this.vaccineName = vaccineName;
+    }
+
+    public String getProvince() {
+        return province;
+    }
+
+    public void setProvince(String province) {
+        this.province = province;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
     }
 }

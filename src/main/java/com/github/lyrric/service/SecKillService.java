@@ -2,11 +2,10 @@ package com.github.lyrric.service;
 
 import com.github.lyrric.conf.Config;
 import com.github.lyrric.model.BusinessException;
-import com.github.lyrric.model.VaccineList;
+import com.github.lyrric.model.Vaccine;
 import com.github.lyrric.ui.MainFrame;
-import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.text.DateFormat;
@@ -14,7 +13,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -27,17 +25,14 @@ import java.util.concurrent.atomic.AtomicReference;
  * @author wangxiaodong
  */
 public class SecKillService {
+    private final Logger logger = LoggerFactory.getLogger(SecKillService.class);
 
     private HttpService httpService;
-
-    private final Logger logger = LogManager.getLogger(SecKillService.class);
-
-    private ExecutorService service = Executors.newFixedThreadPool(200);
-
     public SecKillService() {
         httpService = new HttpService();
     }
 
+    private ExecutorService service = Executors.newFixedThreadPool(200);
     /**
      * 多线程秒杀开启
      */
@@ -144,7 +139,7 @@ public class SecKillService {
         }
 
     }
-    public List<VaccineList> getVaccines() throws IOException, BusinessException {
+    public List<Vaccine> getVaccines() throws IOException, BusinessException {
         return httpService.getVaccineList();
     }
     /**

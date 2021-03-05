@@ -4,9 +4,10 @@ import com.github.lyrric.conf.Config;
 import com.github.lyrric.model.Area;
 import com.github.lyrric.model.BusinessException;
 import com.github.lyrric.model.TableModel;
-import com.github.lyrric.model.VaccineList;
+import com.github.lyrric.model.Vaccine;
+import com.github.lyrric.service.BusinessService;
 import com.github.lyrric.service.SecKillService;
-import com.github.lyrric.util.ParseUtil;
+import com.github.lyrric.util.AreaUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
@@ -26,16 +27,19 @@ import java.util.List;
 public class MainFrame extends JFrame {
 
     SecKillService service = new SecKillService();
+    BusinessService businessService = BusinessService.getInstance();
     /**
      * 疫苗列表
      */
-    private List<VaccineList> vaccines;
+    private List<Vaccine> vaccines;
 
     JButton startBtn;
 
     JButton setCookieBtn;
 
     JButton setMemberBtn;
+
+    JButton vaccineListBtn;
 
     JTable vaccinesTable;
 
@@ -111,7 +115,7 @@ public class MainFrame extends JFrame {
         vaccinesTable = new JTable(tableModel);
         JScrollPane scrollPane = new JScrollPane(vaccinesTable);
 
-        List<Area> areas = ParseUtil.getAreas();
+        List<Area> areas = AreaUtil.getAreas();
         provinceBox  = new JComboBox<>(areas.toArray(new Area[0]));
         //itemListener
         ItemListener itemListener = new ItemListener() {
@@ -120,7 +124,7 @@ public class MainFrame extends JFrame {
                 if(ItemEvent.SELECTED == arg0.getStateChange()){
                     Area selectedItem = (Area)arg0.getItem();
                     cityBox.removeAllItems();
-                    List<Area> children = ParseUtil.getChildren(selectedItem.getName());
+                    List<Area> children = AreaUtil.getChildren(selectedItem.getName());
                     for (Area child : children) {
                         cityBox.addItem(child);
                     }
@@ -129,7 +133,7 @@ public class MainFrame extends JFrame {
             }
         };
         provinceBox.addItemListener(itemListener);
-        cityBox = new JComboBox<>( ParseUtil.getChildren("直辖市").toArray(new Area[0]));
+        cityBox = new JComboBox<>( AreaUtil.getChildren("直辖市").toArray(new Area[0]));
 
         provinceBox.setBounds(20, 275, 100, 20);
         cityBox.setBounds(130, 275, 80, 20);
@@ -152,6 +156,14 @@ public class MainFrame extends JFrame {
 
         scroll.setBounds(480, 10, 180, 280);
 
+        vaccineListBtn = new JButton("可抢列表");
+        vaccineListBtn.setEnabled(true);
+        vaccineListBtn.addActionListener((e)->{
+            businessService.checkVaccine();
+        });
+        vaccineListBtn.setBounds(320, 270, 80, 30);
+
+
         add(scrollPane);
         add(scroll);
         add(startBtn);
@@ -159,6 +171,7 @@ public class MainFrame extends JFrame {
         add(setMemberBtn);
         add(refreshBtn);
         add(provinceBox);
+        add(vaccineListBtn);
         add(cityBox);
         add(setAreaBtn);
     }
@@ -174,7 +187,7 @@ public class MainFrame extends JFrame {
             ((DefaultTableModel)vaccinesTable.getModel()).fireTableDataChanged();
             vaccinesTable.updateUI();//刷新表
             if(vaccines != null && !vaccines.isEmpty()){
-                for (VaccineList t : vaccines) {
+                for (Vaccine t : vaccines) {
                     String[] item = { t.getId().toString(), t.getVaccineName(),t.getName() ,t.getStartTime()};
                     tableModel.addRow(item);
 
