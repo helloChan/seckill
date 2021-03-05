@@ -45,7 +45,7 @@ public class YuemiaoService {
      *
      * @return
      */
-    public List<Vaccine> checkVaccine() {
+    public List<Vaccine> getAllVaccine() {
         List<Vaccine> list = new ArrayList<>();
         List<Area> areas = AreaUtil.getAreas();
         for (Area province : areas) {
@@ -113,7 +113,14 @@ public class YuemiaoService {
      * @throws BusinessException
      */
     public List<Vaccine> getVaccineList() throws BusinessException, IOException {
-        return this.getVaccineList(Config.regionCode);
+        List<Vaccine> vaccineList = this.getVaccineList(Config.regionCode);
+        // 过滤九价疫苗
+        vaccineList = vaccineList.stream().filter(vaccine -> "8803".equals(vaccine.getVaccineCode())).collect(Collectors.toList());
+        // 过滤已过期的
+        vaccineList = vaccineList.stream().filter(vaccine ->  DateUtil.parseDate(vaccine.getStartTime(),DateUtil.yyyy_MM_dd_HH_mm_ss).getTime() > System.currentTimeMillis()).collect(Collectors.toList());
+        // 时间升序
+        vaccineList.sort((Vaccine v1, Vaccine v2) -> DateUtil.parseDate(v1.getStartTime(),DateUtil.yyyy_MM_dd_HH_mm_ss).compareTo(DateUtil.parseDate(v2.getStartTime(),DateUtil.yyyy_MM_dd_HH_mm_ss)));
+        return vaccineList;
     }
 
     /**

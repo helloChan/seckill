@@ -137,9 +137,7 @@ public class SecKillService {
         }
 
     }
-    public List<Vaccine> getVaccines() throws IOException, BusinessException {
-        return yuemiaoService.getVaccineList();
-    }
+
     /**
      *  将时间字符串转换为时间戳
      * @param dateStr yyyy-mm-dd格式

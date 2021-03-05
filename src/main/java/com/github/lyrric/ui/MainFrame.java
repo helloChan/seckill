@@ -99,7 +99,15 @@ public class MainFrame extends JFrame {
         refreshBtn = new JButton("刷新疫苗列表");
         refreshBtn.setEnabled(false);
         refreshBtn.addActionListener((e)->{
-            refreshVaccines();
+            try {
+                vaccines = yuemiaoService.getVaccineList();
+                vaccineRender(vaccines);
+            } catch (IOException ex) {
+                ex.printStackTrace();
+                appendMsg("未知错误");
+            } catch (BusinessException e1) {
+                appendMsg("错误："+e1.getErrMsg()+"，errCode"+e1.getCode());
+            }
         });
 
         note = new JTextArea();
@@ -159,7 +167,8 @@ public class MainFrame extends JFrame {
         vaccineListBtn = new JButton("可抢列表");
         vaccineListBtn.setEnabled(true);
         vaccineListBtn.addActionListener((e)->{
-            yuemiaoService.checkVaccine();
+            List<Vaccine> allVaccine = yuemiaoService.getAllVaccine();
+            this.vaccineRender(allVaccine);
         });
         vaccineListBtn.setBounds(320, 270, 80, 30);
 
@@ -177,29 +186,25 @@ public class MainFrame extends JFrame {
     }
 
 
+    /**
+     * 渲染疫苗数据
+     * @param vaccines
+     */
+    private void vaccineRender(List<Vaccine> vaccines){
+        //清除表格数据
+        //通知模型更新
+        ((DefaultTableModel)vaccinesTable.getModel()).getDataVector().clear();
+        ((DefaultTableModel)vaccinesTable.getModel()).fireTableDataChanged();
+        vaccinesTable.updateUI();//刷新表
+        if(vaccines != null && !vaccines.isEmpty()){
+            for (Vaccine t : vaccines) {
+                String[] item = { t.getId().toString(), t.getVaccineName(),t.getName() ,t.getStartTime()};
+                tableModel.addRow(item);
 
-    private void refreshVaccines(){
-        try {
-            vaccines = service.getVaccines();
-            //清除表格数据
-            //通知模型更新
-            ((DefaultTableModel)vaccinesTable.getModel()).getDataVector().clear();
-            ((DefaultTableModel)vaccinesTable.getModel()).fireTableDataChanged();
-            vaccinesTable.updateUI();//刷新表
-            if(vaccines != null && !vaccines.isEmpty()){
-                for (Vaccine t : vaccines) {
-                    String[] item = { t.getId().toString(), t.getVaccineName(),t.getName() ,t.getStartTime()};
-                    tableModel.addRow(item);
-
-                }
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-            appendMsg("未知错误");
-        } catch (BusinessException e) {
-            appendMsg("错误："+e.getErrMsg()+"，errCode"+e.getCode());
         }
     }
+
     private void start(){
         if(StringUtils.isEmpty(Config.cookies)){
             appendMsg("请配置cookie!!!");

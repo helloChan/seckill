@@ -41,6 +41,6 @@ public class Config {
     /**
      * 选择的地区代码
      */
-    public static String regionCode = "5101";
+    public static String regionCode = "4401";
 
 }
