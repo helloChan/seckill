@@ -21,12 +21,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -38,35 +36,133 @@ import java.util.stream.Collectors;
  */
 public class YuemiaoService {
     private static YuemiaoService yuemiaoService = new YuemiaoService();
-
     private YuemiaoService() {
     }
-
-    private final Logger log = LoggerFactory.getLogger(YuemiaoService.class);
-    private ExecutorService executorService = Executors.newFixedThreadPool(200);
-
     public static YuemiaoService getInstance() {
         return yuemiaoService;
     }
 
-    public static void main(String[] args) {
-        YuemiaoService instance = YuemiaoService.getInstance();
-        instance.startSeckill(1, "2021-03-06 14:00:00", null);
-    }
 
-    public void startSeckill(Integer vaccineId, String startDateStr, MainFrame mainFrame) {
-        Runnable task = this.seckillStrategy(vaccineId, startDateStr, mainFrame);
+    private final Logger log = LoggerFactory.getLogger(YuemiaoService.class);
+    private ExecutorService executorService = Executors.newFixedThreadPool(1000);
+
+    /**
+     * 秒杀策略 - 未通过
+     * @param vaccineId
+     * @param startDateStr
+     * @param mainFrame
+     * @throws InterruptedException
+     */
+    public void startSeckill(Integer vaccineId, String startDateStr, MainFrame mainFrame) throws InterruptedException {
+        AtomicBoolean success = new AtomicBoolean(false);
+        Runnable task = this.seckillRunnable(vaccineId, success);
+        long startTimeMillis = DateUtil.parseDate(startDateStr, DateUtil.yyyy_MM_dd_HH_mm_ss).getTime();
+        if (System.currentTimeMillis() < startTimeMillis - 2000) {
+            log.info("还未到开始时间，等待中......");
+            mainFrame.appendMsg("还未到开始时间，等待中......");
+        }
+
+        log.info("########### 提前2秒 准备开始秒杀 200个请求 ###########");
+        mainFrame.appendMsg("提前2秒 准备开始秒杀 200个请求");
+        Thread.sleep(startTimeMillis - System.currentTimeMillis() - 2000);
         for (int i = 0; i < 200; i++) {
             executorService.submit(task);
         }
+
+        if (!success.get()) {
+            log.info("########### 提前1.5秒 准备开始秒杀 300个请求 ###########");
+            mainFrame.appendMsg("提前1.5秒 准备开始秒杀 300个请求");
+            Thread.sleep(startTimeMillis - System.currentTimeMillis() - 1500);
+            for (int i = 0; i < 300; i++) {
+                executorService.submit(task);
+            }
+        }
+
+        if (!success.get()) {
+            log.info("########### 提前1秒 准备开始秒杀 400个请求 ###########");
+            mainFrame.appendMsg("提前1秒 准备开始秒杀 400个请求");
+            Thread.sleep(startTimeMillis - System.currentTimeMillis() - 1000);
+            for (int i = 0; i < 400; i++) {
+                executorService.submit(task);
+            }
+        }
+
+        if (!success.get()) {
+            log.info("########### 提前1秒 准备开始秒杀 500个请求 ###########");
+            mainFrame.appendMsg("提前1秒 准备开始秒杀 500个请求");
+            Thread.sleep(startTimeMillis - System.currentTimeMillis() - 500);
+            for (int i = 0; i < 500; i++) {
+                executorService.submit(task);
+            }
+        }
+
+        if (!success.get()) {
+            Thread.sleep(startTimeMillis - System.currentTimeMillis() - 20);
+            log.info("########### 提前20毫秒 准备开始秒杀 500个持续请求 ###########");
+            mainFrame.appendMsg("提前20毫秒 准备开始秒杀 500个持续请求");
+            Runnable cyclesTask = cyclesSeckillRunnable(vaccineId, success, startTimeMillis);
+            for (int i = 0; i < 500; i++) {
+                executorService.submit(cyclesTask);
+            }
+        }
+        this.endSeckill(mainFrame, success);
     }
 
-    public Runnable seckillStrategy(Integer vaccineId, String startDateStr, MainFrame mainFrame) {
-        long startDate = DateUtil.parseDate(startDateStr, DateUtil.yyyy_MM_dd_HH_mm_ss).getTime();
-        AtomicBoolean success = new AtomicBoolean(false);
+    public void endSeckill(MainFrame mainFrame, AtomicBoolean success) {
+        executorService.shutdown();
+        if (mainFrame != null) {
+            mainFrame.setStartBtnEnable();
+        }
+        //等待线程结束
+        try {
+            executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
+            if (success.get()) {
+                if (mainFrame != null) {
+                    mainFrame.appendMsg("抢购成功，请登录约苗小程序查看");
+                }
+                log.info("抢购成功，请登录约苗小程序查看");
+            } else {
+                if (mainFrame != null) {
+                    mainFrame.appendMsg("抢购失败");
+                }
+            }
+        } catch (InterruptedException e) {
+            if (mainFrame != null) {
+                mainFrame.appendMsg("未知异常");
+            }
+            log.info("抢购失败:", e.getCause());
+        }
+    }
+
+    public Runnable seckillRunnable(Integer vaccineId, AtomicBoolean success) {
         AtomicReference<String> orderId = new AtomicReference<>(null);
         Runnable task = () -> {
-            log.info("线程名称 - {}", Thread.currentThread().getName());
+            if (!success.get()) {
+                try {
+                    //1.直接秒杀、获取秒杀资格
+                    orderId.set(yuemiaoService.seckill(vaccineId.toString(), "1", Config.memberId.toString(), Config.idCard));
+                    success.set(true);
+                    log.info("{} -----------------------> 抢购成功", Thread.currentThread().getName());
+                } catch (BusinessException e) {
+                    log.info("{} 抢购失败， {}", Thread.currentThread().getId(), e.getErrMsg());
+                    if ("操作过于频繁,请稍后再试!".equals(e.getErrMsg()) && new Random().nextBoolean()) {
+                        try {
+                            Thread.sleep(10);
+                        } catch (InterruptedException ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+                } catch (Exception e) {
+                    log.info("{} 抢购失败，{}", Thread.currentThread().getName(), e.getMessage(), e);
+                }
+            }
+        };
+        return task;
+    }
+
+    public Runnable cyclesSeckillRunnable(Integer vaccineId, AtomicBoolean success, long startTimeMillis) {
+        AtomicReference<String> orderId = new AtomicReference<>(null);
+        Runnable task = () -> {
             do {
                 try {
                     //1.直接秒杀、获取秒杀资格
@@ -74,25 +170,28 @@ public class YuemiaoService {
                     success.set(true);
                     log.info("{} -----------------------> 抢购成功", Thread.currentThread().getName());
                 } catch (BusinessException e) {
-                    log.info("{} 抢购失败: {}", Thread.currentThread().getId(), e.getErrMsg());
-                    //如果离开始时间120秒后，或者已经成功抢到则不再继续
-                    if (System.currentTimeMillis() > startDate + 1000 * 60 * 2 || success.get()) {
+                    // 如果离开始时间120秒后，或者已经成功抢到则不再继续
+                    if (System.currentTimeMillis() > startTimeMillis + 1000 * 60 * 2 || success.get()) {
+                        log.info("{} 线程抢购两分钟未成功，结束抢购。",Thread.currentThread().getName());
                         return;
                     }
-//                    if("操作过于频繁,请稍后再试!".equals(e.getErrMsg()) && new Random().nextBoolean()){
-//                        try {
-//                            Thread.sleep(500);
-//                        } catch (InterruptedException ex) {
-//                            ex.printStackTrace();
-//                        }
-//                    }
+                    log.info("{} 抢购失败: {}", Thread.currentThread().getId(), e.getErrMsg());
+                    if ("操作过于频繁,请稍后再试!".equals(e.getErrMsg()) && new Random().nextBoolean()) {
+                        try {
+                            Thread.sleep(10);
+                        } catch (InterruptedException ex) {
+                            ex.printStackTrace();
+                        }
+                    }
                 } catch (Exception e) {
-                    log.info("{}异常，{}", Thread.currentThread().getName(), e.getMessage(), e);
+                    log.info("{}抢购失败，{}", Thread.currentThread().getName(), e.getMessage(), e);
                 }
             } while (orderId.get() == null);
         };
         return task;
     }
+
+
     /**
      * 检测有疫苗的医院
      *
@@ -131,7 +230,7 @@ public class YuemiaoService {
      * @throws IOException
      * @throws BusinessException
      */
-    public String seckill(String seckillId, String vaccineIndex, String linkmanId, String idCard) throws IOException, BusinessException {
+    public String seckill(String seckillId, String vaccineIndex, String linkmanId, String idCard) throws Exception, IOException, BusinessException {
         Map<String, String> params = new HashMap<>();
         params.put("seckillId", seckillId);
         params.put("vaccineIndex", vaccineIndex);

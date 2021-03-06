@@ -40,7 +40,7 @@ public class MainFrame extends JFrame {
     JButton comboBoxSureButton;
     JButton defaultCityVaccineListButton;
     DefaultTableModel tableModel;
-    JTextArea log;
+    JTextArea logTextArea;
     JComboBox<Area> provinceBox;
     JComboBox<Area> cityBox;
 
@@ -152,12 +152,12 @@ public class MainFrame extends JFrame {
     }
 
     public JScrollPane initLogTextArea() {
-        log = new JTextArea();
-        log.append("日记记录：\r\n");
-        log.setEditable(false);
-        log.setAutoscrolls(true);
-        log.setLineWrap(true);
-        JScrollPane scroll = new JScrollPane(log);
+        logTextArea = new JTextArea();
+        logTextArea.append("日记记录：\r\n");
+        logTextArea.setEditable(false);
+        logTextArea.setAutoscrolls(true);
+        logTextArea.setLineWrap(true);
+        JScrollPane scroll = new JScrollPane(logTextArea);
         scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         return scroll;
     }
@@ -250,8 +250,8 @@ public class MainFrame extends JFrame {
 
 
     public void appendMsg(String message) {
-        log.append(message);
-        log.append("\r\n");
+        logTextArea.append(message);
+        logTextArea.append("\r\n");
     }
 
     public void setStartBtnEnable() {
